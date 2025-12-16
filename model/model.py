@@ -25,7 +25,7 @@ class RRModel:
         """Return True if robot has reached the goal."""
         return state[0] == self.goal
 
-    def slide(self, r, c, direction, other_robots=None):
+    def _slide(self, r, c, direction, other_robots=None):
         """
         Slide from (r,c) in the given direction until blocked by:
         - walls
@@ -63,20 +63,16 @@ class RRModel:
         Apply action (slide in a direction) to state.
         state = (r,c) for single robot
         """
-        # r, c = state
-        # return self.slide(r, c, direction, other_robots)
         robot_idx, direction = action
 
         robots = list(state)
         r, c = robots[robot_idx]
 
-        # other robots block movement
         other_robots = set(robots)
         other_robots.remove((r, c))
 
-        new_pos = self.slide(r, c, direction, other_robots)
+        new_pos = self._slide(r, c, direction, other_robots)
 
-        # update only the chosen robot
         robots[robot_idx] = new_pos
         return tuple(robots)
 
@@ -84,13 +80,6 @@ class RRModel:
         """
         Yield (next_state, action) for moves that actually change the state.
         """
-        # r, c = state
-
-        # for direction in (UP, RIGHT, DOWN, LEFT):
-        #     next_state = self.transition((r, c), direction)
-
-        #     if next_state != (r, c):
-        #         yield next_state, direction
         num_robots = len(state)
 
         for i in range(num_robots):
@@ -100,7 +89,7 @@ class RRModel:
             other_robots.remove((r, c))
 
             for direction in (UP, RIGHT, DOWN, LEFT):
-                new_pos = self.slide(r, c, direction, other_robots)
+                new_pos = self._slide(r, c, direction, other_robots)
 
                 if new_pos != (r, c):
                     new_state = list(state)
@@ -111,13 +100,11 @@ class RRModel:
         """
         Return a Unicode string representation of the board.
         """
-        # Map robot positions to indices
         robot_at = {pos: i for i, pos in enumerate(state)}
 
         out = []
 
         for r in range(self.rows):
-            # ---- Top wall line ----
             top = ""
             for c in range(self.cols):
                 top += "┼"
@@ -125,7 +112,6 @@ class RRModel:
             top += "┼"
             out.append(top)
 
-            # ---- Cell contents + vertical walls ----
             mid = ""
             for c in range(self.cols):
                 mid += "┃" if (self.walls[r][c] & W_LEFT) else " "
@@ -133,9 +119,9 @@ class RRModel:
                 pos = (r, c)
                 if pos in robot_at:
                     if robot_at[pos] == 0:
-                        mid += " R "   # target robot
+                        mid += " R "
                     else:
-                        mid += " B "   # blocker robot
+                        mid += " B "
                 elif pos == self.goal:
                     mid += " G "
                 else:
@@ -144,7 +130,6 @@ class RRModel:
             mid += "┃" if (self.walls[r][self.cols - 1] & W_RIGHT) else " "
             out.append(mid)
 
-        # ---- Bottom wall line ----
         bottom = ""
         for c in range(self.cols):
             bottom += "┼"
