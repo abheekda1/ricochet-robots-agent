@@ -1,3 +1,4 @@
+from agent.bfs import BFSAgent
 from agent.mcts import MCTSAgent
 from manual_play import generate_rr_board
 from model.model import RRModel, UP, RIGHT, DOWN, LEFT
@@ -6,58 +7,11 @@ import time
 from utils.puzzle_generator import generate_solvable_puzzle_2robots
 
 
-# ============================================================
-# Pretty printing helpers
-# ============================================================
-
 def announce_move(move):
     names = {UP: "UP", RIGHT: "RIGHT", DOWN: "DOWN", LEFT: "LEFT"}
     return names.get(move, f"?{move}")
 
-
-# ============================================================
-# Build a sample board with WALLS
-# ============================================================
-
-def make_demo_board():
-    rows, cols = 8, 8
-
-    # wall bit constants
-    W_UP, W_RIGHT, W_DOWN, W_LEFT = 1, 2, 4, 8
-
-    # empty wall grid
-    walls = [[0 for _ in range(cols)] for _ in range(rows)]
-
-    # Add some interesting walls to avoid straight-line loops:
-    #
-    # Vertical wall at column 3
-    for r in range(1, 7):
-        walls[r][3] |= W_RIGHT     # wall on right side of (r,3)
-        walls[r][4] |= W_LEFT      # matching wall on left of (r,4)
-
-    # Horizontal wall at row 4
-    for c in range(2, 6):
-        walls[4][c] |= W_DOWN      # wall below (4,c)
-        walls[5][c] |= W_UP        # matching wall above (5,c)
-
-    # A small block around (2,2)
-    walls[2][2] |= (W_RIGHT | W_DOWN)
-    walls[2][3] |= W_LEFT
-    walls[3][2] |= W_UP
-
-    return walls
-
-
-# ============================================================
-# Full game test loop
-# ============================================================
-
-def test_mcts_game():
-    # walls = make_demo_board()
-
-    # # start and goal positions
-    # start = (6, 1)
-    # goal = (1, 6)
+def test_bfs_game():
     walls, targets = generate_rr_board()
 
     model = RRModel(16, 16, walls, goal_pos=None)
@@ -70,23 +24,17 @@ def test_mcts_game():
 
     state = start
 
-    print("\n=== Ricochet Robots MCTS Demo ===")
+    print("\n=== Ricochet Robots BFS Demo ===")
     print("Start:", start, "Goal:", goal)
 
-    # model = RRModel(
-    #     rows=8, 
-    #     cols=8, 
-    #     walls=walls, 
-    #     goal_pos=goal
-    # )
 
-    agent = MCTSAgent(model, time=0.20, rollout_depth=15)
+    agent = BFSAgent(model, max_nodes=100_000)
 
-    # state = start
     print(model.render(state))
 
     MAX_MOVES = 30
     for move_number in range(1, MAX_MOVES + 1):
+    # while True:
 
         if model.is_terminal(state):
             print(f"Reached the goal in {move_number - 1} moves!")
@@ -99,7 +47,7 @@ def test_mcts_game():
         action = agent.choose_action(state)
 
         if action is None:
-            print("MCTS returned no action. Stopping.")
+            print("BFS returned no action. Stopping.")
             return
 
         print("Chosen action:", announce_move(action))
@@ -122,4 +70,4 @@ def test_mcts_game():
 # ============================================================
 
 if __name__ == "__main__":
-    test_mcts_game()
+    test_bfs_game()

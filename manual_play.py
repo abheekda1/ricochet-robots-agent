@@ -1,8 +1,6 @@
-from model.model import RRModel, UP, RIGHT, DOWN, LEFT
-
-# ------------------------------------------------------------
-# Helpers
-# ------------------------------------------------------------
+import random
+from model.model import RRModel, UP, RIGHT, DOWN, LEFT, W_LEFT, W_RIGHT, W_UP, W_DOWN
+from utils.puzzle_generator import generate_solvable_puzzle_2robots
 
 ACTION_NAMES = {
     UP: "UP",
@@ -14,51 +12,116 @@ ACTION_NAMES = {
 def action_name(a):
     return ACTION_NAMES.get(a, str(a))
 
-
-# ------------------------------------------------------------
-# Demo board (same as before)
-# ------------------------------------------------------------
-
-def make_demo_board():
-    rows, cols = 8, 8
-    W_UP, W_RIGHT, W_DOWN, W_LEFT = 1, 2, 4, 8
+def generate_rr_board(rows=16, cols=16):
+    """
+    Generate a Ricochet-Robots-style board:
+    - perimeter walls
+    - internal wall clusters
+    - center block
+    Returns (walls, targets)
+    """
 
     walls = [[0 for _ in range(cols)] for _ in range(rows)]
 
-    # vertical wall
-    for r in range(1, 7):
-        walls[r][3] |= W_RIGHT
-        walls[r][4] |= W_LEFT
+    for r in range(rows):
+        walls[r][0] |= W_LEFT
+        walls[r][cols-1] |= W_RIGHT
 
-    # horizontal wall
-    for c in range(2, 6):
-        walls[4][c] |= W_DOWN
-        walls[5][c] |= W_UP
+    for c in range(cols):
+        walls[0][c] |= W_UP
+        walls[rows-1][c] |= W_DOWN
 
-    # small block
-    walls[2][2] |= (W_RIGHT | W_DOWN)
-    walls[2][3] |= W_LEFT
-    walls[3][2] |= W_UP
+    def add_wall(r, c, direction):
+        if direction == "UP":
+            walls[r][c] |= W_UP
+            walls[r-1][c] |= W_DOWN
+        elif direction == "DOWN":
+            walls[r][c] |= W_DOWN
+            walls[r+1][c] |= W_UP
+        elif direction == "LEFT":
+            walls[r][c] |= W_LEFT
+            walls[r][c-1] |= W_RIGHT
+        elif direction == "RIGHT":
+            walls[r][c] |= W_RIGHT
+            walls[r][c+1] |= W_LEFT
 
-    return walls
+    clusters = [
+        (1, 4, "LEFT", "UP"),
+        (1, 14, "LEFT", "UP"),
+        (2, 1, "RIGHT", "UP"),
+        (2, 11, "LEFT", "DOWN"),
+        (3, 6, "DOWN", "RIGHT"),
+        (6, 3, "LEFT", "DOWN"),
+        (6, 13, "RIGHT", "DOWN"),
+        (8, 5, "UP", "RIGHT"),
+        (9, 1, "RIGHT", "DOWN"),
+        (9, 13, "LEFT", "DOWN"),
+        (11, 9, "RIGHT", "DOWN"),
+        (14, 3, "LEFT", "UP"),
+        (14, 10, "LEFT", "UP"),
+        (13, 5, "RIGHT", "UP"),
+        (13, 14, "RIGHT", "UP"),
+        (7, 7, "UP", "LEFT"),
+        (7, 8, "UP", "RIGHT"),
+        (8, 7, "DOWN", "LEFT"),
+        (8, 8, "RIGHT", "DOWN"),
+    ]
 
+    for r, c, d1, d2 in clusters:
+        add_wall(r, c, d1)
+        add_wall(r, c, d2)
 
-# ------------------------------------------------------------
-# Interactive game loop
-# ------------------------------------------------------------
+    single_walls = [
+        (0, 1, "RIGHT"),
+        (0, 9, "RIGHT"),
+        (5, 0, "DOWN"),
+        (11, 0, "DOWN"),
+        (15, 6, "RIGHT"),
+        (15, 11, "RIGHT"),
+        (3, 15, "DOWN"),
+        (11, 15, "DOWN"),
+        (6, 10, "DOWN"),
+    ]
+
+    for r, c, d in single_walls:
+        add_wall(r, c, d)
+
+    targets = [
+        (1, 4),
+        (1, 14),
+        (2, 1),
+        (2, 11),
+        (3, 6),
+        (6, 3),
+        (6, 13),
+        (8, 5),
+        (9, 1),
+        (9, 13),
+        (11, 9),
+        (14, 3),
+        (14, 10),
+        (13, 5),
+        (13, 14),
+    ]
+
+    return walls, targets
+
 
 def manual_play():
-    walls = make_demo_board()
+    walls, targets = generate_rr_board()
 
-    start = ((6, 1), (2, 2), (3, 3))  # robot positions
-    goal = (1, 6)
-
-    model = RRModel(8, 8, walls, goal)
+    model = RRModel(16, 16, walls, goal_pos=None)
+    start, goal = generate_solvable_puzzle_2robots(
+        model,
+        targets,
+        scramble_steps=40
+    )
+    model.goal_pos = goal
 
     state = start
     step = 0
 
-    print("\n🎮 Ricochet Robots – Manual Play")
+    print("\n🎮 Ricochet Robots - Manual Play")
     print("Controls: enter the index of the move you want")
     print("Type 'q' to quit\n")
 
@@ -102,10 +165,6 @@ def manual_play():
         state = next_state
         step += 1
 
-
-# ------------------------------------------------------------
-# Entry point
-# ------------------------------------------------------------
 
 if __name__ == "__main__":
     manual_play()
