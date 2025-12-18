@@ -1,3 +1,84 @@
+"""
+Ricochet Robots - Final Project Test Script (CS 474)
+Kashvi Pundir, Daniel Wang, Abheek Dhawan
+
+Game Description:
+This project models a simplified version of the Ricochet Robots puzzle game.
+Robots move on a fixed 16x16 grid with walls. When a robot moves in a direction,
+it slides until it hits a wall or another robot. The goal is to move a designated
+target robot to a specified goal square.
+
+Research Question:
+How do different computational intelligence techniques scale as the number of
+robots increases in Ricochet Robots? In particular, how do search algorithms like BFS and IDDFS,
+reinforcement learning, and Monte Carlo Tree Search compare in terms of success
+rate, solution quality, and runtime?
+
+Algorithms Compared:
+- BFS (Breadth-First Search): Optimal but exhaustive search.
+- IDDFS (Iterative Deepening DFS): Depth-limited exhaustive search.
+- MCTS (Monte Carlo Tree Search): Online stochastic planning with rollouts.
+- Value Iteration: Tabular dynamic programming (only feasible for 2 robots).
+
+What This Script Does:
+This script generates solvable Ricochet Robots puzzles with 2, 3, and 4 robots
+using reverse scrambling. For each puzzle, it runs the above agents and measures:
+- whether the agent reaches the goal
+- number of moves taken
+- total runtime
+
+The script can run a single comparison or multiple randomized trials and
+aggregates the results.
+
+Results Summary (from multiple trials):
+- BFS and IDDFS solve small instances quickly but scale poorly as robot count grows.
+- Value Iteration performs well for 2 robots but becomes infeasible for larger cases.
+- MCTS consistently achieves high success rates for 3-4 robots, at the cost of
+  longer solutions and higher runtime.
+
+How to Run:
+Build:
+    make build
+This creates a `test` executable that runs the test script with pypy3.
+
+Single run:
+    make singletest
+
+Multiple trials (recommended):
+    make test RUNS=[num trials]
+
+The multiple-trial mode reproduces the aggregate results reported in the project.
+
+Here are our results for 100 trials:
+================================================================================
+AGGREGATE RESULTS
+================================================================================
+
+--- 2 ROBOTS ---
+Agent      Success %  Avg Moves    Avg Time (s)
+------------------------------------------------------------
+BFS        100        9.3          0.019
+IDDFS      96         9.0          0.079
+MCTS       93         15.5         7.760
+VIter      100        9.3          3.354
+
+--- 3 ROBOTS ---
+Agent      Success %  Avg Moves    Avg Time (s)
+------------------------------------------------------------
+BFS        100        7.7          0.104
+IDDFS      87         7.1          0.065
+MCTS       91         14.1         7.057
+VIter      0%         N/A          N/A
+
+--- 4 ROBOTS ---
+Agent      Success %  Avg Moves    Avg Time (s)
+------------------------------------------------------------
+BFS        88         6.3          0.140
+IDDFS      72         5.8          0.067
+MCTS       91         14.0         6.986
+VIter      0%         N/A          N/A
+"""
+
 from agent.bfs import BFSAgent
 from agent.iddfs import IDDFSAgent
 from agent.mcts import MCTSAgent
