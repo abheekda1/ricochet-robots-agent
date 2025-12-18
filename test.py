@@ -32,7 +32,7 @@ aggregates the results.
 
 Results Summary (from multiple trials):
 - BFS and IDDFS solve small instances quickly but scale poorly as robot count grows.
-- Value Iteration performs well for 2 robots but becomes infeasible for larger cases.
+- Value Iteration performs the best for 2 robots after training but becomes infeasible for larger cases.
 - MCTS consistently achieves high success rates for 3-4 robots, at the cost of
   longer solutions and higher runtime.
 
