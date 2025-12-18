@@ -22,7 +22,6 @@ class RRModel:
         self.cols = cols
         self.walls = walls
         self.goal = goal_pos
-        self.num_robots = 2 # variable to change
 
     def is_terminal(self, state):
         """Return True if robot has reached the goal."""
@@ -99,13 +98,13 @@ class RRModel:
                     new_state[i] = new_pos
                     yield tuple(new_state), (i, direction)
 
-    def get_states(self, state):
+    def get_states(self, num_robots):
         """
         Return a list of all possible valid game states
         """
         cells = [(r, c) for r in range(self.rows) for c in range(self.cols)]
         states = []
-        for positions in itertools.permutations(cells, self.num_robots):
+        for positions in itertools.permutations(cells, num_robots):
             states.append(tuple(positions))
         return states
     

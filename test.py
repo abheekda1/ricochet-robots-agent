@@ -2,6 +2,7 @@ from agent.bfs import BFSAgent
 from agent.iddfs import IDDFSAgent
 from agent.mcts import MCTSAgent
 
+from agent.rl import ValueIterationAgent
 from manual_play import generate_rr_board
 from model.model import RRModel
 
@@ -14,10 +15,6 @@ from utils.puzzle_generator import (
 import time
 import sys
 
-
-# ============================================================
-# Agent test helper
-# ============================================================
 
 def test_agent(agent, model, start_state, agent_name, max_moves=50):
     state = start_state
@@ -46,10 +43,6 @@ def test_agent(agent, model, start_state, agent_name, max_moves=50):
     }
 
 
-# ============================================================
-# Puzzle generation by robot count
-# ============================================================
-
 def generate_puzzle(model, targets, robot_count, scramble_steps):
     if robot_count == 2:
         return generate_solvable_puzzle_2robots(model, targets, scramble_steps)
@@ -60,10 +53,6 @@ def generate_puzzle(model, targets, robot_count, scramble_steps):
     else:
         raise ValueError("Robot count must be 2, 3, or 4")
 
-
-# ============================================================
-# Compare agents for a given robot count
-# ============================================================
 
 def compare_agents_for_robot_count(robot_count, scramble_steps=40, max_moves=50):
     print("\n" + "=" * 80)
@@ -84,10 +73,14 @@ def compare_agents_for_robot_count(robot_count, scramble_steps=40, max_moves=50)
         (BFSAgent(model, max_nodes=100_000), "BFS"),
         (IDDFSAgent(model, max_depth=100, max_nodes=100_000), "IDDFS"),
         (MCTSAgent(model, time=0.5, rollout_depth=100), "MCTS"),
+        (ValueIterationAgent(model, num_robots=robot_count, discount=0.9, num_iterations=20), "VIter"),
     ]
 
     results = []
     for agent, name in agents:
+        if name == "VIter" and robot_count > 2:
+            print(f"\nSkipping {name} for {robot_count} robots (not supported).")
+            continue
         print(f"\nTesting {name}...")
         result = test_agent(agent, model, start, name, max_moves)
         results.append(result)
@@ -99,10 +92,6 @@ def compare_agents_for_robot_count(robot_count, scramble_steps=40, max_moves=50)
 
     return results
 
-
-# ============================================================
-# Run experiments across robot counts
-# ============================================================
 
 def compare_all_agents(robot_counts=(2, 3, 4), scramble_steps=1000, max_moves=50):
     all_results = {}
@@ -128,10 +117,6 @@ def compare_all_agents(robot_counts=(2, 3, 4), scramble_steps=1000, max_moves=50
     return all_results
 
 
-# ============================================================
-# Multiple trials (aggregate stats)
-# ============================================================
-
 def run_multiple_tests(num_tests=5, robot_counts=(2, 3, 4), scramble_steps=1000):
     stats = {}
 
@@ -140,6 +125,7 @@ def run_multiple_tests(num_tests=5, robot_counts=(2, 3, 4), scramble_steps=1000)
             "BFS": {"success": 0, "moves": [], "time": []},
             "IDDFS": {"success": 0, "moves": [], "time": []},
             "MCTS": {"success": 0, "moves": [], "time": []},
+            "VIter": {"success": 0, "moves": [], "time": []},
         }
 
     for i in range(num_tests):
@@ -176,12 +162,8 @@ def run_multiple_tests(num_tests=5, robot_counts=(2, 3, 4), scramble_steps=1000)
                 print(f"{agent:<10} 0%         N/A          N/A")
 
 
-# ============================================================
-# Entry point
-# ============================================================
-
 if __name__ == "__main__":
-    if len(sys.argv) > 1 and sys.argv[1] == "multiple":
-        run_multiple_tests(num_tests=5)
+    if len(sys.argv) > 1:
+        run_multiple_tests(num_tests=int(sys.argv[1]))
     else:
         compare_all_agents()
