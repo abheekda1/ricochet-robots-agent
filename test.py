@@ -1,6 +1,7 @@
 """
 Ricochet Robots - Final Project Test Script (CS 474)
 Kashvi Pundir, Daniel Wang, Abheek Dhawan
+https://github.com/abheekda1/ricochet-robots-agent
 
 Game Description:
 This project models a simplified version of the Ricochet Robots puzzle game.
@@ -44,7 +45,7 @@ This creates a `test` executable that runs the test script with pypy3.
 Single run:
     make singletest
 
-Multiple trials (recommended):
+Multiple trials (recommended 10 for quick results):
     make test RUNS=[num trials]
 
 The multiple-trial mode reproduces the aggregate results reported in the project.
